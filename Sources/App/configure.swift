@@ -2,7 +2,7 @@ import Vapor
 import APNS
 import APNSwift
 import Fluent
-import FluentPostgresDriver
+import FluentSQLiteDriver
 import Foundation
 
 // configures your application
@@ -10,17 +10,18 @@ public func configure(_ app: Application) throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     
-    if let databaseURL = Environment.get("DATABASE_URL") {
-        app.databases.use(try .postgres(
-            url: databaseURL
-        ), as: .psql)
-    } else {
-        // ...
-        app.databases.use(.postgres(hostname: "localhost", username: "postgres", password: "123456", database: "sypushdev"), as: .psql)
-    }
+    app.databases.use(.sqlite(.memory), as: .sqlite)
+//    if let databaseURL = Environment.get("DATABASE_URL") {
+//        app.databases.use(try .postgres(
+//            url: databaseURL
+//        ), as: .psql)
+//    } else {
+//        // ...
+//        
+//    }
 
-    app.migrations.add(AppMigration(), to: .psql)
-    app.migrations.add(DeviceMigration(), to: .psql)
+    app.migrations.add(AppMigration(), to: .sqlite)
+    app.migrations.add(DeviceMigration(), to: .sqlite)
     
     try app.autoMigrate().wait()
     
