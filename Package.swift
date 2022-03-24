@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "sypush",
     platforms: [
-       .macOS(.v12)
+       .macOS(.v11)
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
@@ -12,12 +12,18 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
         .package(url: "https://github.com/vapor/leaf.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/apns.git", from: "2.0.0"),
+        .package(url: "https://github.com/sroebert/mqtt-nio.git", from: "2.0.0"),
     ],
     targets: [
         .target(
             name: "App",
             dependencies: [
-                .product(name: "Vapor", package: "vapor")
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Fluent", package: "fluent"),
+                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "MQTTNIO", package: "mqtt-nio"),
             ],
             swiftSettings: [
                 // Enable better optimizations when building in Release configuration. Despite the use of
