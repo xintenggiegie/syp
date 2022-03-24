@@ -8,7 +8,6 @@
 import Foundation
 import FluentKit
 
-
 struct AppMigration: Migration {
     func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema(SYApp.schema)
@@ -21,8 +20,7 @@ struct AppMigration: Migration {
     }
     
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        database.schema(SYApp.schema)
-            .update()
+        database.schema(SYApp.schema).update()
     }
 }
  

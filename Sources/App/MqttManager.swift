@@ -7,6 +7,7 @@
 
 import Vapor
 import MQTTNIO
+import Foundation
 
 class Mqtt {
     static let shared = Mqtt()
@@ -33,8 +34,10 @@ class Mqtt {
                     if let st = status {
                         let flag = (st.status == "online")
                         _ = SYDevice.query(on: app.db)
+                            .filter(\.$registrationID, .equal, st.regid)
                             .set(\.$online, to: flag)
-                            .filter(\.$registrationID, .equal, st.regid).update()
+                            .set(\.$latestOnlineTime, to: Date())
+                            .update()
                     }
                     break
                 default:

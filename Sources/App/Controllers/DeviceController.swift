@@ -21,6 +21,7 @@ struct DeviceController: RouteCollection {
 //        deviceR.post("getAlias", use: getAlias)
         //
         deviceR.post("setTags", use: setTags)
+        deviceR.get("getTags", use: getTags)
     }
     
     func index(req: Request) throws -> EventLoopFuture<ResponseJSON<[SYDevice]>> {
@@ -81,7 +82,7 @@ struct DeviceController: RouteCollection {
 //    func getAlias(req: Request) throws -> EventLoopFuture<ResponseJSON<String>> {
 //        let regid = try req.content.get(String.self, at: "regid")
 //        return SYDevice.query(on: req.db)
-//            .filter(\.registrationID, .equal, regid).first().map { device in
+//            .filter(\.registrationID, .equal, regid).all().map { device in
 //                if let device = device {
 //                    return ResponseJSON(code: .ok, message: "获取Alias成功", data: device.alias)
 //                } else {
@@ -97,6 +98,14 @@ struct DeviceController: RouteCollection {
             .filter(\.$registrationID, .equal, registrationID)
             .set(\.$tags, to: tags).update().map {
                 ResponseJSON(code: .ok, message: "设置tags成功", data: tags)
+            }
+    }
+    
+    func getTags(req: Request) throws -> EventLoopFuture<ResponseJSON<[String]>> {
+        let regid = try req.content.get(String.self, at: "regid")
+        return SYDevice.query(on: req.db)
+            .filter(\.$registrationID, .equal, regid).first().map { d in
+                ResponseJSON.init(code: .ok, message: "获取tags成功", data: d?.tags)
             }
     }
 }

@@ -8,12 +8,12 @@
 import Foundation
 import Vapor
 import APNSwift
+import MQTTNIO
 
-enum PushStrategy {
-    case system
-    case inMessage
-    case bothSystemAndInMessage
-    case inMessageFirst
+enum PushStrategy: Int {
+    case system = 0
+    case inMessage = 1
+    case inMessageFirst = 2
 }
 
 struct PushController: RouteCollection {
@@ -35,7 +35,7 @@ struct PushController: RouteCollection {
             .filter(\.$appKey, .equal, appKey)
             .all().mapEach { element in
                 sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: badge), regid: element.registrationID, online: element.online, dt: element.deviceToken, req: req)
-            }.map {_ in
+            }.map { _ in
                 ResponseJSON(code: .ok, message: "按app推送成功", data: appKey)
             }
     }
@@ -88,11 +88,25 @@ struct PushController: RouteCollection {
     }
     
     func sendMessage(payload: PushPayload, regid: String, online: Bool, dt: String, req:Request) -> EventLoopFuture<Void> {
-        if online {
-            return Mqtt.shared.client.publish(payload.title, to: regid)
-        } else {
-            let pl = APNSwiftPayload(alert: APNSwiftAlert.init(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: payload.badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
+        let pushStrategy = try? req.content.get(Int.self, at: "pushStrategy")
+        let stra = PushStrategy(rawValue: pushStrategy ?? 2) ?? .inMessageFirst
+        switch stra {
+        case .system:
+            let pl = APNSwiftPayload(alert: APNSwiftAlert(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: payload.badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
             return req.apns.send(pl, to: dt)
+        case .inMessage:
+            let msg = MqttMsg(_msgid: UUID().uuidString, title: payload.title, subTitle: payload.subTitle, body: payload.body)
+            let data = try! JSONEncoder().encode(msg)
+            return Mqtt.shared.client.publish(.bytes(ByteBuffer(data: data)), to: regid, qos: .atLeastOnce)
+        case .inMessageFirst:
+            if online {
+                let msg = MqttMsg(_msgid: UUID().uuidString, title: payload.title, subTitle: payload.subTitle, body: payload.body)
+                let data = try! JSONEncoder().encode(msg)
+                return Mqtt.shared.client.publish(.bytes(ByteBuffer(data: data)), to: regid, qos: .atLeastOnce)
+            } else {
+                let pl = APNSwiftPayload(alert: APNSwiftAlert(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: payload.badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
+                return req.apns.send(pl, to: dt)
+            }
         }
     }
 }
