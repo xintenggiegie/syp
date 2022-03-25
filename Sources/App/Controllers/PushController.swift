@@ -33,7 +33,7 @@ struct PushController: RouteCollection {
         return SYDevice.query(on: req.db)
             .filter(\.$appKey, .equal, appKey)
             .all().mapEach { element in
-                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: element.badge), regid: element.registrationID, online: element.online, dt: element.deviceToken, req: req)
+                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: 0), regid: element.registrationID, online: element.online, dt: element.deviceToken, req: req)
             }.map { _ in
                 ResponseJSON(code: .ok, message: "按app推送成功", data: appKey)
             }
@@ -48,7 +48,7 @@ struct PushController: RouteCollection {
         return SYDevice.query(on: req.db)
             .filter(\.$registrationID, .equal, regid)
             .all().mapEach { d in
-                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge), regid: regid, online: d.online, dt: d.deviceToken, req: req)
+                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: 0), regid: regid, online: d.online, dt: d.deviceToken, req: req)
             }.map { _ in
                 ResponseJSON(code: .ok, message: "按设备标识推送成功", data: regid)
             }
@@ -62,7 +62,7 @@ struct PushController: RouteCollection {
         return SYDevice.query(on: req.db)
             .filter(\.$alias, .equal, alias)
             .all().mapEach { d in
-                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
+                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: 0), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
             }.map { _ in
                 ResponseJSON(code: .ok, message: "按别名推送成功", data: alias)
             }
@@ -77,7 +77,7 @@ struct PushController: RouteCollection {
         return SYDevice.query(on: req.db)
             .filter(\.$tags, .contains(inverse: false, .anywhere), tags)
             .all().mapEach { d in
-                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
+                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: 0), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
             }.map { _ in
                 ResponseJSON(code: .ok, message: "按Tag推送成功", data: tags)
             }
