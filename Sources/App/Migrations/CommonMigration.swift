@@ -40,6 +40,7 @@ struct DeviceMigration: Migration {
             .field("platform", .string, .required)
             .field("system_version", .string, .required)
             .field("channel", .string, .required)
+            .field("badge", .int8, .required)
             .create()
     }
     func revert(on database: Database) -> EventLoopFuture<Void> {

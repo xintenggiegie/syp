@@ -22,6 +22,9 @@ struct DeviceController: RouteCollection {
         //
         deviceR.post("setTags", use: setTags)
         deviceR.get("getTags", use: getTags)
+        
+        //
+        deviceR.post("setBadge", use: setBadge)
     }
     
     func index(req: Request) throws -> EventLoopFuture<ResponseJSON<[SYDevice]>> {
@@ -32,22 +35,29 @@ struct DeviceController: RouteCollection {
     
     func register(req: Request) throws -> EventLoopFuture<ResponseJSON<SYDevice>> {
         let dr = try req.content.decode(SYDeviceReq.self)
-        let device = SYDevice()
-        device.appKey = dr.appKey
-        device.registrationID = UUID().uuidString
-        device.deviceToken = dr.deviceToken ?? ""
-        device.bundleId = dr.bundleId
-        device.channel = dr.channel
-        device.online = false
-        device.platform = dr.platform
-        device.systemVersion = dr.systemVersion
-        device.latestOnlineTime = Date()
-        device.alias = ""
-        device.tags = []
-        device.phoneNumber = ""
-        return device.create(on: req.db).map {
-            ResponseJSON(code: .ok, message: "注册设备成功", data: device)
-        }
+        return SYApp.query(on: req.db)
+            .filter(\.$appKey, .equal, dr.appKey).first().map { app -> ResponseJSON<SYDevice> in
+                if let app = app {
+                    let device = SYDevice()
+                    device.appKey = app.appKey
+                    device.registrationID = UUID().uuidString
+                    device.deviceToken = dr.deviceToken ?? ""
+                    device.bundleId = dr.bundleId
+                    device.channel = dr.channel
+                    device.online = false
+                    device.platform = dr.platform
+                    device.systemVersion = dr.systemVersion
+                    device.latestOnlineTime = Date()
+                    device.alias = ""
+                    device.tags = []
+                    device.phoneNumber = ""
+                    device.badge = 0
+                    _ = device.create(on: req.db)
+                    return ResponseJSON(code: .ok, message: "注册设备成功", data: device)
+                } else {
+                    return ResponseJSON(code: .invalid, message: "appkey无效", data: nil)
+                }
+            }
     }
     
     func setDeviceToken(req: Request) throws -> EventLoopFuture<ResponseJSON<String>> {
@@ -108,4 +118,15 @@ struct DeviceController: RouteCollection {
                 ResponseJSON.init(code: .ok, message: "获取tags成功", data: d?.tags)
             }
     }
+    
+    func setBadge(req: Request) throws -> EventLoopFuture<ResponseJSON<Int8>> {
+        let badge = try req.content.get(Int8.self, at: "badge")
+        let regid = try req.content.get(String.self, at: "regid")
+        return SYDevice.query(on: req.db)
+            .filter(\.$registrationID, .equal, regid)
+            .set(\.$badge, to: badge).update().map {
+            ResponseJSON(code: .ok, message: "设置badge成功", data: badge)
+        }
+    }
+    
 }

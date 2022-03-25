@@ -42,6 +42,8 @@ final class SYDevice: BaseModel {
     var systemVersion: String
     @OptionalField(key: "channel")
     var channel: String?
+    @Field(key: "badge")
+    var badge: Int8
     
     init () {}
 }
