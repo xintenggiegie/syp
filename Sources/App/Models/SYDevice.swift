@@ -43,7 +43,7 @@ final class SYDevice: BaseModel {
     @OptionalField(key: "channel")
     var channel: String?
     @Field(key: "badge")
-    var badge: Int8
+    var badge: Int
     
     init () {}
 }

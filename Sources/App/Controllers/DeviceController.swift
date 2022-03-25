@@ -119,8 +119,8 @@ struct DeviceController: RouteCollection {
             }
     }
     
-    func setBadge(req: Request) throws -> EventLoopFuture<ResponseJSON<Int8>> {
-        let badge = try req.content.get(Int8.self, at: "badge")
+    func setBadge(req: Request) throws -> EventLoopFuture<ResponseJSON<Int>> {
+        let badge = try req.content.get(Int.self, at: "badge")
         let regid = try req.content.get(String.self, at: "regid")
         return SYDevice.query(on: req.db)
             .filter(\.$registrationID, .equal, regid)
