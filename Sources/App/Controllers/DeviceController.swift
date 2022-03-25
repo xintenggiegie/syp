@@ -51,7 +51,7 @@ struct DeviceController: RouteCollection {
                     device.alias = ""
                     device.tags = []
                     device.phoneNumber = ""
-//                    device.badge = 0
+                    device.badge = 0
                     _ = device.create(on: req.db)
                     return ResponseJSON(code: .ok, message: "注册设备成功", data: device)
                 } else {
@@ -102,10 +102,10 @@ struct DeviceController: RouteCollection {
 //    }
     
     func setTags(req: Request) throws -> EventLoopFuture<ResponseJSON<[String]>> {
-        let registrationID = try req.content.get(String.self, at: "registrationID")
+        let regid = try req.content.get(String.self, at: "regid")
         let tags = try req.content.get([String].self, at: "tags")
         return SYDevice.query(on: req.db)
-            .filter(\.$registrationID, .equal, registrationID)
+            .filter(\.$registrationID, .equal, regid)
             .set(\.$tags, to: tags).update().map {
                 ResponseJSON(code: .ok, message: "设置tags成功", data: tags)
             }
@@ -119,14 +119,14 @@ struct DeviceController: RouteCollection {
             }
     }
     
-//    func setBadge(req: Request) throws -> EventLoopFuture<ResponseJSON<Int>> {
-//        let badge = try req.content.get(Int.self, at: "badge")
-//        let regid = try req.content.get(String.self, at: "regid")
-//        return SYDevice.query(on: req.db)
-//            .filter(\.$registrationID, .equal, regid)
-//            .set(\.$badge, to: badge).update().map {
-//            ResponseJSON(code: .ok, message: "设置badge成功", data: badge)
-//        }
-//    }
+    func setBadge(req: Request) throws -> EventLoopFuture<ResponseJSON<Int>> {
+        let badge = try req.content.get(Int.self, at: "badge")
+        let regid = try req.content.get(String.self, at: "regid")
+        return SYDevice.query(on: req.db)
+            .filter(\.$registrationID, .equal, regid)
+            .set(\.$badge, to: badge).update().map {
+            ResponseJSON(code: .ok, message: "设置badge成功", data: badge)
+        }
+    }
     
 }

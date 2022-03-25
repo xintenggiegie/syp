@@ -20,7 +20,7 @@ struct AppMigration: Migration {
     }
     
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        database.schema(SYApp.schema).update()
+        database.schema(SYApp.schema).delete()
     }
 }
  
@@ -40,10 +40,20 @@ struct DeviceMigration: Migration {
             .field("platform", .string, .required)
             .field("system_version", .string, .required)
             .field("channel", .string, .required)
-//            .field("badge", .int, .required)
             .create()
     }
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        database.schema(SYDevice.schema).update()
+        database.schema(SYDevice.schema).delete()
     }
 }
+
+struct BadgeMigration: Migration {
+    func prepare(on database: Database) -> EventLoopFuture<Void> {
+        database.schema(SYDevice.schema)
+            .field("badge", .int, .custom("")).update()
+    }
+    func revert(on database: Database) -> EventLoopFuture<Void> {
+        database.schema(SYDevice.schema).delete()
+    }
+}
+
