@@ -10,10 +10,10 @@ public func configure(_ app: Application) throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     
-    if let databaseURL = Environment.get("DATABASE_URL") {
-        app.databases.use(try .postgres(
-            url: databaseURL
-        ), as: .psql)
+    if let databaseURL = Environment.get("DATABASE_URL"), var postgresConfig = PostgresConfiguration(url: databaseURL) {
+        postgresConfig.tlsConfiguration = .makeClientConfiguration()
+        postgresConfig.tlsConfiguration?.certificateVerification = .none
+        app.databases.use(.postgres(configuration: postgresConfig), as: .psql)
     } else {
         // ...
         app.databases.use(.postgres(hostname: "localhost", username: "postgres", password: "123456", database: "sypushdev"), as: .psql)
