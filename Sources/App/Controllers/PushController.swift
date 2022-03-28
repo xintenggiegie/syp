@@ -54,17 +54,18 @@ struct PushController: RouteCollection {
             }
     }
     
-    func pushToAlias(req: Request) throws -> EventLoopFuture<ResponseJSON<String>> {
+    func pushToAlias(req: Request) throws -> EventLoopFuture<ResponseJSON<[String]>> {
         let alias = try req.content.get(String.self, at: "alias")
         let title = try req.content.get(String.self, at: "title")
         let subTitle = try req.content.get(String.self, at: "subTitle")
         let body = try req.content.get(String.self, at: "body")
         return SYDevice.query(on: req.db)
             .filter(\.$alias, .equal, alias)
-            .all().mapEach { d in
-                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge ?? 0), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
-            }.map { _ in
-                ResponseJSON(code: .ok, message: "按别名推送成功", data: alias)
+            .all().mapEach { d -> SYDevice in
+                _ = sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge ?? 0), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
+                return d
+            }.map { arr in
+                ResponseJSON(code: .ok, message: "按别名推送成功", data: arr.map{$0.registrationID})
             }
     }
 //
@@ -77,17 +78,16 @@ struct PushController: RouteCollection {
         return SYDevice.query(on: req.db)
             .all().mapEachCompact{ d -> SYDevice? in
                 var hasSameTag = false
-                for tag in tags {
-                    if d.tags!.contains(tag) {
-                        hasSameTag = true
-                        break
-                    }
+                for tag in tags where d.tags!.contains(tag) {
+                    hasSameTag = true
+                    break
                 }
                 return hasSameTag ? d : nil
-            }.mapEach { d in
-                sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge ?? 0), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
-            }.map { _ in
-                ResponseJSON(code: .ok, message: "按Tag推送成功", data: tags)
+            }.mapEach { d -> SYDevice in
+                _ = sendMessage(payload: PushPayload(title: title, subTitle: subTitle, body: body, badge: d.badge ?? 0), regid: d.registrationID, online: d.online, dt: d.deviceToken, req: req)
+                return d
+            }.map { arr in
+                ResponseJSON(code: .ok, message: "按Tag推送成功", data: arr.map{$0.registrationID})
             }
     }
     

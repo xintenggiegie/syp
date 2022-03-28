@@ -11,7 +11,9 @@ struct DeviceController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let deviceR = routes.grouped("device")
         deviceR.get("list", use: index)
-        
+    
+    
+        //
         deviceR.post("register", use: register)
         
         deviceR.post("setDeviceToken", use: setDeviceToken)
@@ -19,6 +21,8 @@ struct DeviceController: RouteCollection {
         deviceR.post("setAlias", use: setAlias)
         deviceR.post("deleteAlias", use: deleteAlias)
         deviceR.post("getAlias", use: getAlias)
+        deviceR.get("getAliasDevices", use: getAliasDevices)
+        
         //
         deviceR.post("setTags", use: setTags)
         deviceR.get("getTags", use: getTags)
@@ -99,6 +103,14 @@ struct DeviceController: RouteCollection {
                     return ResponseJSON(code: .dataNotExist, message:"设备不存在", data: regid)
                 }
             }
+    }
+    
+    func getAliasDevices(req: Request) throws -> EventLoopFuture<ResponseJSON<[String]>> {
+        let alias = try req.content.get(String.self, at: "alias")
+        return SYDevice.query(on: req.db)
+            .filter(\.$alias, .equal, alias).all().map { devices in
+            ResponseJSON(data: devices.map{$0.registrationID})
+        }
     }
     
     func setTags(req: Request) throws -> EventLoopFuture<ResponseJSON<[String]>> {
