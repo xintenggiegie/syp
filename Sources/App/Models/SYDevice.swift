@@ -62,5 +62,5 @@ struct PushPayload: Content {
     var title: String
     var subTitle: String
     var body: String?
-    var badge: Int?
+    var badge: Int
 }

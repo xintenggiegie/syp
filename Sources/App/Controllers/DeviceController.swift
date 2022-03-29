@@ -12,7 +12,6 @@ struct DeviceController: RouteCollection {
         let deviceR = routes.grouped("device")
         deviceR.get("list", use: index)
     
-    
         //
         deviceR.post("register", use: register)
         
@@ -25,10 +24,14 @@ struct DeviceController: RouteCollection {
         
         //
         deviceR.post("setTags", use: setTags)
+    
         deviceR.get("getTags", use: getTags)
         
         //
         deviceR.post("setBadge", use: setBadge)
+        
+        //
+        deviceR.post("setMobile", use: setMobile)
     }
     
     func index(req: Request) throws -> EventLoopFuture<ResponseJSON<[SYDevice]>> {
@@ -139,6 +142,16 @@ struct DeviceController: RouteCollection {
             .set(\.$badge, to: badge).update().map {
             ResponseJSON(code: .ok, message: "设置badge成功", data: badge)
         }
+    }
+    
+    func setMobile(req: Request) throws -> EventLoopFuture<ResponseJSON<String>> {
+        let mobile = try req.content.get(String.self, at: "mobile")
+        let regid = try req.content.get(String.self, at: "regid")
+        return SYDevice.query(on: req.db)
+            .filter(\.$registrationID, .equal, regid)
+            .set(\.$phoneNumber, to: mobile).update().map {
+                ResponseJSON(code: .ok, message: "设置手机号成功", data: mobile)
+            }
     }
     
 }

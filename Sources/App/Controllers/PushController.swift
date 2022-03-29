@@ -91,12 +91,20 @@ struct PushController: RouteCollection {
             }
     }
     
-    func sendMessage(payload: PushPayload, regid: String, online: Bool, dt: String, req:Request) -> EventLoopFuture<Void> {
+    func sendMessage(payload: PushPayload, regid: String, online: Bool, dt: String, req: Request) -> EventLoopFuture<Void> {
         let pushStrategy = try? req.content.get(Int.self, at: "pushStrategy")
+        let badgeStr = try? req.content.get(String.self, at: "badge")
+        var badge: Int?
+        if var bs = badgeStr, bs.hasPrefix("+") {
+            bs.removeFirst()
+            badge = Int(bs) ?? 0 + payload.badge
+        } else {
+            badge = payload.badge
+        }
         let stra = PushStrategy(rawValue: pushStrategy ?? 2) ?? .inMessageFirst
         switch stra {
         case .system:
-            let pl = APNSwiftPayload(alert: APNSwiftAlert(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: payload.badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
+            let pl = APNSwiftPayload(alert: APNSwiftAlert(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
             return req.apns.send(pl, to: dt)
         case .inMessage:
             let msg = MqttMsg(_msgid: UUID().uuidString, title: payload.title, subTitle: payload.subTitle, body: payload.body)
@@ -108,7 +116,7 @@ struct PushController: RouteCollection {
                 let data = try! JSONEncoder().encode(msg)
                 return Mqtt.shared.client.publish(.bytes(ByteBuffer(data: data)), to: regid, qos: .atLeastOnce)
             } else {
-                let pl = APNSwiftPayload(alert: APNSwiftAlert(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: payload.badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
+                let pl = APNSwiftPayload(alert: APNSwiftAlert(title: payload.title, subtitle: payload.subTitle, body: payload.body), badge: badge, sound: .normal("default"), hasContentAvailable: false, hasMutableContent: false)
                 return req.apns.send(pl, to: dt)
             }
         }
