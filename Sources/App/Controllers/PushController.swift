@@ -95,9 +95,14 @@ struct PushController: RouteCollection {
         let pushStrategy = try? req.content.get(Int.self, at: "pushStrategy")
         let badgeStr = try? req.content.get(String.self, at: "badge")
         var badge: Int?
-        if var bs = badgeStr, bs.hasPrefix("+") {
-            bs.removeFirst()
-            badge = Int(bs) ?? 0 + payload.badge
+        if var bs = badgeStr {
+            if bs.hasPrefix("+") {
+                bs.removeFirst()
+                badge = Int(bs) ?? 0 + payload.badge
+            } else {
+                bs.removeFirst()
+                badge = Int(bs) ?? 0
+            }
         } else {
             badge = payload.badge
         }
