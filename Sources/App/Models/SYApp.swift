@@ -16,6 +16,12 @@ struct SYAppContent: Content {
     var phoneNumber: String
 }
 
+extension SYAppContent: Validatable {
+    static func validations(_ validations: inout Validations) {
+        validations.add("phoneNumber", as: String.self, is: .alphanumeric)
+    }
+}
+
 final class SYApp: BaseModel {
     
     static let schema = "syapps"

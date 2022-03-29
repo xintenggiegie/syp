@@ -11,6 +11,7 @@ struct DeviceController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let deviceR = routes.grouped("device")
         deviceR.get("list", use: index)
+        deviceR.get("info", ":regid", use: deviceInfo)
     
         //
         deviceR.post("register", use: register)
@@ -35,8 +36,15 @@ struct DeviceController: RouteCollection {
     }
     
     func index(req: Request) throws -> EventLoopFuture<ResponseJSON<[SYDevice]>> {
-        return SYDevice.query(on: req.db).all().map { abc in
-            ResponseJSON(data: abc)
+        if let appKey = try? req.content.get(String.self, at: "appKey") {
+            return SYDevice.query(on: req.db)
+                .filter(\.$appKey, .equal, appKey).all().map { list in
+                    ResponseJSON(data: list)
+                }
+        } else {
+            return SYDevice.query(on: req.db).all().map { abc in
+                ResponseJSON(data: abc)
+            }
         }
     }
     
@@ -67,11 +75,23 @@ struct DeviceController: RouteCollection {
             }
     }
     
+    func deviceInfo(req: Request) throws -> EventLoopFuture<ResponseJSON<SYDevice>> {
+        guard let regid = req.parameters.get("regid", as: String.self) else { throw Abort(.badRequest) }
+        return SYDevice.query(on: req.db)
+            .filter(\.$registrationID, .equal, regid).first().map { device -> ResponseJSON<SYDevice> in
+                if let device = device {
+                    return ResponseJSON(code: .ok, message: "获取设备信息成功", data: device)
+                } else {
+                    return ResponseJSON(code: .dataNotExist, message: "设备不存在", data: nil)
+                }
+            }
+    }
+    
     func setDeviceToken(req: Request) throws -> EventLoopFuture<ResponseJSON<String>> {
-        let registrationID = try req.content.get(String.self, at: "registrationID")
+        let regid = try req.content.get(String.self, at: "regid")
         let deviceToken = try req.content.get(String.self, at: "deviceToken")
         return SYDevice.query(on: req.db)
-            .filter(\.$registrationID, .equal, registrationID)
+            .filter(\.$registrationID, .equal, regid)
             .set(\.$deviceToken, to: deviceToken).update().map {
                 ResponseJSON(data: "更新token成功")
             }
