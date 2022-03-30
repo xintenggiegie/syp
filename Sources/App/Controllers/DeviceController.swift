@@ -112,7 +112,7 @@ struct DeviceController: RouteCollection {
         return SYDevice.query(on: req.db)
             .filter(\.$registrationID, .equal, regid)
             .set(\.$alias, to: "").update().map {
-            ResponseJSON(code: .ok, message: "删除Alias成功", data: "")
+                ResponseJSON(code: .ok, message: "删除Alias成功", data: "")
         }
     }
     

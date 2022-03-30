@@ -57,3 +57,14 @@ struct BadgeMigration: Migration {
     }
 }
 
+struct OnlineDateMigration: Migration {
+    func prepare(on database: Database) -> EventLoopFuture<Void> {
+        database.schema(SYDevice.schema)
+            .updateField("latest_online_time", .datetime)
+            .update()
+    }
+    func revert(on database: Database) -> EventLoopFuture<Void> {
+        database.schema(SYDevice.schema).delete()
+    }
+}
+

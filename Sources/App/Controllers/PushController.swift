@@ -98,9 +98,8 @@ struct PushController: RouteCollection {
         if var bs = badgeStr {
             if bs.hasPrefix("+") {
                 bs.removeFirst()
-                badge = Int(bs) ?? 0 + payload.badge
+                badge = (Int(bs) ?? 0) + payload.badge
             } else {
-                bs.removeFirst()
                 badge = Int(bs) ?? 0
             }
         } else {

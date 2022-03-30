@@ -22,6 +22,7 @@ public func configure(_ app: Application) throws {
     app.migrations.add(AppMigration(), to: .psql)
     app.migrations.add(DeviceMigration(), to: .psql)
     app.migrations.add(BadgeMigration(), to: .psql)
+    app.migrations.add(OnlineDateMigration(), to: .psql)
     
     try app.autoMigrate().wait()
     
