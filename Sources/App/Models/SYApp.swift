@@ -18,7 +18,8 @@ struct SYAppContent: Content {
 
 extension SYAppContent: Validatable {
     static func validations(_ validations: inout Validations) {
-        validations.add("phoneNumber", as: String.self, is: .alphanumeric)
+        validations.add("userName", as: String.self, is: !.empty, required: true)
+        validations.add("appName", as: String.self, is: !.empty, required: true)
     }
 }
 
