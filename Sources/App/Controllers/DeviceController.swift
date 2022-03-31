@@ -15,6 +15,7 @@ struct DeviceController: RouteCollection {
     
         //
         deviceR.post("register", use: register)
+        deviceR.post("delete", use: deleteDevice)
         
         deviceR.post("setDeviceToken", use: setDeviceToken)
         //
@@ -72,6 +73,14 @@ struct DeviceController: RouteCollection {
                 } else {
                     return ResponseJSON(code: .invalid, message: "appkey无效", data: nil)
                 }
+            }
+    }
+    
+    func deleteDevice(req: Request) throws -> EventLoopFuture<ResponseJSON<String>> {
+        let regid = try req.content.get(String.self, at: "regid")
+        return SYDevice.query(on: req.db)
+            .filter(\.$registrationID, .equal, regid).delete(force: true).map {
+                ResponseJSON(code: .ok, message: "设备删除成功")
             }
     }
     
