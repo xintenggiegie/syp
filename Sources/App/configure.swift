@@ -39,7 +39,7 @@ MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgsj/279tiMJPaZl71
             keyIdentifier: "G9KDXM9L7K",
             teamIdentifier: "ZEBW46K5SH"
         ),
-        topic: "com.sooyie.tsmp",
+        topic: "com.sooyie.TangMonkCard",
         environment: .sandbox
     )
 
